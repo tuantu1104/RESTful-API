@@ -16,10 +16,10 @@ exports.productsGetAll = (req, res) => {
             name: doc.name,
             price: doc.price,
             _id: doc._id,
-            productImage: doc.productImage ? `http://localhost:3000/uploads/${doc.productImage}` : null,
+            productImage: doc.productImage ? `${req.protocol}://${req.get('host')}/uploads/${doc.productImage}` : null,
             request: {
               type: 'GETs',
-              url: `http://localhost:3000/products/${doc._id}`
+              url: `${req.protocol}://${req.get('host')}/products/${doc._id}`
             }
           };
         })
@@ -34,25 +34,20 @@ exports.productsGetAll = (req, res) => {
 };
 
 exports.productsCreateProduct = (req, res) => {
-  console.log(req.file);
   const product = new Product({
     _id: new mongoose.Types.ObjectId(),
     name: req.body.name,
     price: req.body.price,
-    productImage: req.file.filename
+    productImage: req.file ? req.file.filename : null
   });
   product.save()
     .then((result) => {
       res.status(201).json({
-        message: 'Created product successfully',
-        createdProduct: {
-          name: result.name,
-          price: result.price,
-          _id: result._id,
-          request: {
-            type: 'GET',
-            url: `http://localhost:3000/products/${result._id}`
-          }
+        message: 'Product created successfully',
+        createdProduct: result,
+        request: {
+          type: 'GET',
+          url: `http://localhost:3000/products/${result._id}`
         }
       });
     })
@@ -68,17 +63,12 @@ exports.productsGetProduct = (req, res) => {
   Product.findById(id)
     .select('name price _id productImage')
     .exec()
-    .then((doc) => {
-      console.log('From database', doc);
-      if (doc) {
-        if (doc.productImage) {
-          res.status(200).json({
-            product: doc,
-            imageURL: `http://localhost:3000/uploads/${doc.productImage}`
-          });
-        }
+    .then((result) => {
+      console.log('From database', result);
+      if (result) {
         res.status(200).json({
-          product: doc
+          product: result,
+          imageURL: result.productImage ? `http://localhost:3000/uploads/${result.productImage}` : null
         });
       }
       else {
@@ -100,9 +90,9 @@ exports.productsEditProduct = (req, res) => {
   Product.updateOne({ _id: id }, { $set: updateOps })
     .exec()
     .then((result) => {
-      console.log(result);
       res.status(200).json({
         message: 'Product updated',
+        updated_product: result,
         request: {
           type: 'GET',
           url: `http://localhost:3000/products/${id}`
