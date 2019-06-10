@@ -1,3 +1,4 @@
+/* eslint-disable arrow-body-style */
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable no-underscore-dangle */
 const mongoose = require('mongoose');
@@ -11,22 +12,11 @@ exports.productsGetAll = (req, res) => {
       const response = {
         count: docs.length,
         products: docs.map((doc) => {
-          if (doc.productImage) {
-            return {
-              name: doc.name,
-              price: doc.price,
-              productImage: `http://localhost:3000/uploads/${doc.productImage}`,
-              _id: doc._id,
-              request: {
-                type: 'GETs',
-                url: `http://localhost:3000/products/${doc._id}`
-              }
-            };
-          }
           return {
             name: doc.name,
             price: doc.price,
             _id: doc._id,
+            productImage: doc.productImage ? `http://localhost:3000/uploads/${doc.productImage}` : null,
             request: {
               type: 'GETs',
               url: `http://localhost:3000/products/${doc._id}`

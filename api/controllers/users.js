@@ -6,7 +6,8 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
 exports.usersSignUp = (req, res) => {
-  User.find({ email: req.body.email })
+  const { email } = req.body;
+  User.find({ email })
     .exec()
     .then((result) => {
       if (result.length >= 1) {
@@ -22,8 +23,9 @@ exports.usersSignUp = (req, res) => {
         }
         const user = new User({
           _id: new mongoose.Types.ObjectId(),
-          email: req.body.email,
-          password: hash
+          email,
+          password: hash,
+          is_admin: req.body.isAdmin
         });
         user
           .save()
@@ -44,7 +46,8 @@ exports.usersSignUp = (req, res) => {
 };
 
 exports.usersLogin = (req, res) => {
-  User.findOne({ email: req.body.email })
+  const email = (req.body.email || '').toLowerCase();
+  User.findOne({ email })
     .exec()
     .then((user) => {
       if (!user) {
@@ -61,7 +64,8 @@ exports.usersLogin = (req, res) => {
         if (result) {
           const token = jwt.sign({
             email: user.email,
-            userId: user._id
+            userId: user._id,
+            isAdmin: user.is_admin
           }, process.env.JWT_KEY, {
             expiresIn: '1h'
           });

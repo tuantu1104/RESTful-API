@@ -4,8 +4,8 @@
 
 const express = require('express');
 const multer = require('multer');
-const Product = require('../models/product');
 const checkAuth = require('../auth/checkAuth');
+const checkAdmin = require('../auth/checkAdmin');
 const ProductController = require('../controllers/products');
 
 const storage = multer.diskStorage({
@@ -30,12 +30,12 @@ const router = express.Router();
 
 router.get('/', ProductController.productsGetAll);
 
-router.post('/', checkAuth, upload.single('productImage'), ProductController.productsCreateProduct);
+router.post('/', checkAdmin, upload.single('productImage'), ProductController.productsCreateProduct);
 
 router.get('/:productId', ProductController.productsGetProduct);
 
-router.patch('/:productId', checkAuth, ProductController.productsEditProduct);
+router.patch('/:productId', checkAdmin, ProductController.productsEditProduct);
 
-router.delete('/:productId', checkAuth, ProductController.productsDeleteProduct);
+router.delete('/:productId', checkAdmin, ProductController.productsDeleteProduct);
 
 module.exports = router;
