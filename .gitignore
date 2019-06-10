@@ -13,6 +13,7 @@ Desktop.ini
 *~
 
 uploads
+*.jpg
 
 # npm
 node_modules
