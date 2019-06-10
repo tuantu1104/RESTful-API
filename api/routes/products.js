@@ -4,7 +4,6 @@
 
 const express = require('express');
 const multer = require('multer');
-const checkAuth = require('../auth/checkAuth');
 const checkAdmin = require('../auth/checkAdmin');
 const ProductController = require('../controllers/products');
 

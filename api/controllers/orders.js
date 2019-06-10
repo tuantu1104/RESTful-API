@@ -1,3 +1,5 @@
+/* eslint-disable arrow-body-style */
+/* eslint-disable no-underscore-dangle */
 const mongoose = require('mongoose');
 const Order = require('../models/order');
 const Product = require('../models/product');
@@ -5,10 +7,22 @@ const Product = require('../models/product');
 exports.ordersGetAll = (req, res) => {
   Order.find()
     .select('product quantity _id')
-    .populate('product', 'name')
+    .populate('product', 'name price')
     .exec()
-    .then((docs) => {
-      res.status(200).json(docs);
+    .then((orders) => {
+      const response = {
+        count: orders.length,
+        orders: orders.map((order) => {
+          return {
+            order,
+            request: {
+              type: 'GET',
+              url: `${req.protocol}://${req.get('host')}/orders/${order._id}`
+            }
+          };
+        })
+      };
+      res.status(200).json(response);
     })
     .catch((err) => {
       res.status(500).json({
@@ -32,9 +46,12 @@ exports.ordersCreateOrder = (req, res) => {
       });
       return order.save();
     })
-    .then((result) => {
-      console.log(result);
-      res.status(201).json(result);
+    .then((order) => {
+      console.log(order);
+      res.status(201).json({
+        message: 'Order created',
+        order
+      });
     })
     .catch((err) => {
       console.log(err);
@@ -74,8 +91,19 @@ exports.ordersGetOrder = (req, res) => {
 };
 
 exports.ordersDeleteOrder = (req, res) => {
-  res.status(200).json({
-    message: 'Order delete',
-    orderId: req.params.orderId
-  });
+  const id = req.params.orderId;
+  Order.remove({ _id: id })
+    .exec()
+    .then(() => {
+      res.status(200).json({
+        message: 'Order delete',
+        orderId: id
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json({
+        error: err
+      });
+    });
 };

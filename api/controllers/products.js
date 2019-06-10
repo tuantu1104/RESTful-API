@@ -11,15 +11,13 @@ exports.productsGetAll = (req, res) => {
     .then((docs) => {
       const response = {
         count: docs.length,
-        products: docs.map((doc) => {
+        products: docs.map((product) => {
           return {
-            name: doc.name,
-            price: doc.price,
-            _id: doc._id,
-            productImage: doc.productImage ? `${req.protocol}://${req.get('host')}/uploads/${doc.productImage}` : null,
+            product,
+            imageURL: product.productImage ? `${req.protocol}://${req.get('host')}/uploads/${product.productImage}` : null,
             request: {
               type: 'GETs',
-              url: `${req.protocol}://${req.get('host')}/products/${doc._id}`
+              url: `${req.protocol}://${req.get('host')}/products/${product._id}`
             }
           };
         })
