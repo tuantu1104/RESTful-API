@@ -45,7 +45,7 @@ exports.productsCreateProduct = (req, res) => {
         createdProduct: result,
         request: {
           type: 'GET',
-          url: `http://localhost:3000/products/${result._id}`
+          url: `${req.protocol}://${req.get('host')}/products/${result._id}`
         }
       });
     })
@@ -66,7 +66,7 @@ exports.productsGetProduct = (req, res) => {
       if (result) {
         res.status(200).json({
           product: result,
-          imageURL: result.productImage ? `http://localhost:3000/uploads/${result.productImage}` : null
+          imageURL: result.productImage ? `${req.protocol}://${req.get('host')}/uploads/${result.productImage}` : null
         });
       }
       else {
@@ -93,7 +93,7 @@ exports.productsEditProduct = (req, res) => {
         updated_product: result,
         request: {
           type: 'GET',
-          url: `http://localhost:3000/products/${id}`
+          url: `${req.protocol}://${req.get('host')}/products/${id}`
         }
       });
     })
@@ -111,7 +111,8 @@ exports.productsDeleteProduct = (req, res) => {
     .exec()
     .then(() => {
       res.status(200).json({
-        message: 'Product deleted'
+        message: 'Product deleted',
+        productId: id
       });
     })
     .catch((err) => {

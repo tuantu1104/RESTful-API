@@ -5,9 +5,9 @@ const Order = require('../models/order');
 const Product = require('../models/product');
 
 exports.ordersGetAll = (req, res) => {
-  Order.find()
-    .select('product quantity _id')
-    .populate('product', 'name price')
+  Order.find({ userId: req.userData.userId })
+    .select('productId quantity _id')
+    .populate('productId', 'name price')
     .exec()
     .then((orders) => {
       const response = {
@@ -42,7 +42,8 @@ exports.ordersCreateOrder = (req, res) => {
       const order = new Order({
         _id: mongoose.Types.ObjectId(),
         quantity: req.body.quantity,
-        product: req.body.productId
+        productId: req.body.productId,
+        userId: new mongoose.Types.ObjectId(req.userData.userId)
       });
       return order.save();
     })
@@ -50,7 +51,11 @@ exports.ordersCreateOrder = (req, res) => {
       console.log(order);
       res.status(201).json({
         message: 'Order created',
-        order
+        order,
+        request: {
+          type: 'GET',
+          url: `${req.protocol}://${req.get('host')}/orders/${order._id}`
+        }
       });
     })
     .catch((err) => {
@@ -63,11 +68,18 @@ exports.ordersCreateOrder = (req, res) => {
 
 exports.ordersGetOrder = (req, res) => {
   Order.aggregate([
-    { $match: { _id: new mongoose.Types.ObjectId(req.params.orderId) } },
+    {
+      $match: {
+        $and: [
+          { _id: new mongoose.Types.ObjectId(req.params.orderId) },
+          { userId: new mongoose.Types.ObjectId(req.userData.userId) }
+        ]
+      }
+    },
     {
       $lookup: {
         from: 'products',
-        localField: 'product',
+        localField: 'productId',
         foreignField: '_id',
         as: 'orderdetails'
       }
@@ -79,7 +91,7 @@ exports.ordersGetOrder = (req, res) => {
         order,
         request: {
           type: 'GET',
-          url: 'http://localhost:3000/orders'
+          url: `${req.protocol}://${req.get('host')}/orders`
         }
       });
     })
@@ -92,7 +104,7 @@ exports.ordersGetOrder = (req, res) => {
 
 exports.ordersDeleteOrder = (req, res) => {
   const id = req.params.orderId;
-  Order.remove({ _id: id })
+  Order.remove({ _id: id, userId: req.userData.userId })
     .exec()
     .then(() => {
       res.status(200).json({
